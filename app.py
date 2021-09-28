@@ -24,7 +24,7 @@ app.layout = html.Div(
             ]
         ),
         html.Button(id='update_button', n_clicks=0, children='Update Plot'),
-        html.Iframe(id='parallel') # style={'width': '100%', 'height': '1080px'}
+        html.Div(html.Iframe(id='parallel', style={'width': '100%', 'height': '1080px'}))
     ]
 )
 
@@ -35,11 +35,16 @@ app.layout = html.Div(
     State('columns_select', 'value'),
 )
 def update_parallel(n_clicks, columns_selected):
-
-    srcDoc = 1
-    return srcDoc
+    if n_clicks == 0:
+        srcdoc = ''
+    else:
+        exp = hip.Experiment.from_dataframe(df)
+        hidden_columns = [i for i in df.columns.to_list() if i not in columns_selected]  # Remove all but selected
+        exp.display_data(hip.Displays.PARALLEL_PLOT).update({'hide': hidden_columns+['uid']})
+        exp.display_data(hip.Displays.TABLE).update({'hide': hidden_columns+['uid', 'from_uid']})
+        srcdoc = exp.to_html()  # Store html as string
+    return srcdoc
 
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
